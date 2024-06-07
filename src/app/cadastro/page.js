@@ -4,43 +4,47 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useForm } from "react-hook-form"
 import { useRouter } from 'next/navigation'
-import { useContext, useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-
 import Button from '@/components/button'
 import InputText from '@/components/input-text'
-import { AuthContext } from '@/context/AuthContext'
 import loginImage from '@/assets/login.png'
+import { useState, useEffect } from 'react'
 
-export default function Home() {
+export default function Cadastro() {
   const { push } = useRouter()
   const { register, handleSubmit } = useForm()
-  const { login } = useContext(AuthContext)
   const [imageLoaded, setImageLoaded] = useState(false)
-  const [buttonText, setButtonText] = useState("Entrar")
+  const [buttonText, setButtonText] = useState("Cadastrar")
   const [loading, setLoading] = useState(false)
 
   const onSubmit = async (data) => {
-    setLoading(true)
-    const resp = await login(data.email, data.senha)
-    
-    if (resp?.error) {
-      toast.error(resp.error)
-      setLoading(false)
-      setButtonText("Entrar")
-      return
-    }
+    try {
+      const response = await fetch('https://davinci-ocean.onrender.com/usuario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
 
-    push("/monitoramento")
-  }
+      if (!response.ok) {
+        throw new Error('Failed to register');
+      }
+
+      toast.success('Usuário cadastrado com sucesso!');
+      push("/");
+    } catch (error) {
+      toast.error('Erro ao cadastrar usuário: ' + error.message);
+    }
+  };
 
   const handleImageLoad = () => {
-    setImageLoaded(true)
+    setImageLoaded(true);
   }
 
   useEffect(() => {
     if (loading) {
-      const loadingTexts = ["Carregando.", "Carregando..", "Carregando..."]
+      const loadingTexts = ["Cadastrando.", "Cadastrando..", "Cadastrando..."]
       let index = 0
 
       const interval = setInterval(() => {
@@ -69,10 +73,11 @@ export default function Home() {
           <span>Ocean</span>
         </h2>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+          <InputText label="Nome" register={register} name="nome" />
           <InputText label="Email" register={register} name="email" />
           <InputText label="Senha" register={register} name="senha" type="password" />
-          <Link href="/cadastro" className="text-white font-medium no-underline hover:text-cyan-500">Cadastre-se</Link>
-          <Button type="submit">{buttonText}</Button>         
+          <Link href="/" className="text-white font-medium no-underline hover:text-cyan-500">Entrar</Link>
+          <Button type="submit">{buttonText}</Button>
         </form>
       </div>
     </div>
